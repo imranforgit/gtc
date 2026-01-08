@@ -1,26 +1,38 @@
 package com.wcl.gtc.pdfservices;
+import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.borders.SolidBorder;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.VerticalAlignment;
 import com.wcl.gtc.certificateservice.CertificateService;
 import com.wcl.gtc.dto.CertificateResponse;
+import com.wcl.gtc.qrutil.QrUtil;
 
 import org.springframework.stereotype.Service;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 
 @Service
 public class PdfService {
         private CertificateService certificateService;
-        public PdfService(CertificateService certificateService) {
+        private QrUtil qrUtil;
+        public PdfService(CertificateService certificateService, QrUtil qrUtil) {
             this.certificateService = certificateService;
+            this.qrUtil = qrUtil;       
         }       
 
 public byte[] generateGasTestingCertificate(String certificateNo) {
@@ -119,7 +131,7 @@ public byte[] generateGasTestingCertificate(String certificateNo) {
                     .setFont(regularFont)
                     .setFontSize(12)
                     .setTextAlignment(TextAlignment.CENTER));
-            document.add(new Paragraph("\nhas successfully undergone and completed the")
+            document.add(new Paragraph("\n has successfully undergone and completed the")
                     .setFont(regularFont)
                     .setFontSize(12)
                     .setTextAlignment(TextAlignment.CENTER));
@@ -141,18 +153,104 @@ public byte[] generateGasTestingCertificate(String certificateNo) {
                     .setTextAlignment(TextAlignment.JUSTIFIED));
 
             // Certificate Number and Date
-            document.add(new Paragraph("Certificate No.: " + certificateNo)
-                    .setFont(regularFont)
-                    .setFontSize(12)
-                    .setTextAlignment(TextAlignment.LEFT));
-            document.add(new Paragraph("Date of Issue: " + "")
-                    .setFont(regularFont)
-                    .setFontSize(12)
-                    .setTextAlignment(TextAlignment.LEFT));
+        //     document.add(new Paragraph("Certificate No.: " + certificateNo)
+        //             .setFont(regularFont)
+        //             .setFontSize(12)
+        //             .setTextAlignment(TextAlignment.LEFT));
+        //     document.add(new Paragraph("Date of Issue: " + fromDate)
+        //             .setFont(regularFont)
+        //             .setFontSize(12)
+        //             .setTextAlignment(TextAlignment.LEFT));
+         String verifyUrl = "https://localhost:9786/verify/" + certificateNo;
+
+        // // Generate QR Image
+        // BufferedImage qrImage = qrUtil.generateQRCode(verifyUrl, 200, 200);             
+
+        // // Convert to ImageData
+        // ImageData qrImageData = ImageDataFactory.create(qrUtil.bufferedImageToBytes(qrImage));
+
+        // // Add QR image to PDF
+        // Image qrPdfImage = new Image(qrImageData);
+        // qrPdfImage.setWidth(100);
+        // qrPdfImage.setHorizontalAlignment(HorizontalAlignment.RIGHT);  
+        // document.add(qrPdfImage);
+       // Create container Div
+        // Container Div
+       // Table with 2 columns: left 70%, right 30%
+// 2-column table: left 70%, right 30%
+// ====== CERTIFICATE NO + DATE + QR SAME LINE ======
+
+// Create Table with 2 columns: left(70%) and right(30%)
+        // float[] widths = {95,5};
+        // Table infoTable = new Table(widths);
+        // infoTable.setWidth(UnitValue.createPercentValue(100));
+        // infoTable.setBorder(Border.NO_BORDER);
+
+        // // LEFT SIDE TEXT BLOCK
+        // Div leftDiv = new Div()
+        //         .add(new Paragraph("Certificate No.: " + certificateNo)
+        //                 .setFontSize(12))
+        //         .add(new Paragraph("Date of Issue: " + fromDate)
+        //                 .setFontSize(12));
+
+        // Cell leftCell = new Cell()
+        //         .add(leftDiv)
+        //         .setBorder(Border.NO_BORDER)
+        //         .setVerticalAlignment(VerticalAlignment.TOP);
+            
+
+        // infoTable.addCell(leftCell);
+
+        // // RIGHT SIDE QR BLOCK
+        // BufferedImage qrImage = qrUtil.generateQRCode(verifyUrl, 120, 120);
+        // ImageData qrImageData = ImageDataFactory.create(qrUtil.bufferedImageToBytes(qrImage));
+        // Image qrImg = new Image(qrImageData)
+        //         .setWidth(80)
+        //         .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+
+        // Cell rightCell = new Cell()
+        //         .add(qrImg)
+        //         .setBorder(Border.NO_BORDER)
+        //         .setVerticalAlignment(VerticalAlignment.TOP)
+        //         .setTextAlignment(TextAlignment.RIGHT);
+
+        // infoTable.addCell(rightCell);
+
+        // // Add table to document
+        // document.add(infoTable);
+        Table table = new Table(new float[]{350f, 120f}).setWidth(UnitValue.createPointValue(470));
+
+        table.addCell(
+        new Cell().add(new Paragraph(
+                "Certificate No.: " + certificateNo + "\nDate of Issue: " + fromDate
+                ).setFontSize(12))
+                .setBorder(Border.NO_BORDER)
+        );
+
+        BufferedImage qr = qrUtil.generateQRCode(verifyUrl, 120, 120);
+        Image qrImg = new Image(ImageDataFactory.create(qrUtil.bufferedImageToBytes(qr)))
+                .setAutoScale(false);
+
+        table.addCell(
+        new Cell().add(qrImg)
+                .setBorder(Border.NO_BORDER)
+                .setVerticalAlignment(VerticalAlignment.TOP)
+                .setTextAlignment(TextAlignment.RIGHT)
+        );
+
+        document.add(table);
+
+
+
+
+
+
+
+
 
             // Signatures
             float[] columnWidths = {280, 280};
-            Table table = new Table(columnWidths);
+        table = new Table(columnWidths);
             table.setMarginTop(50);
             table.addCell(new Paragraph("____________________________\nTraining Manager\nWestern Coalfields Limited")
                     .setFont(regularFont)
@@ -166,6 +264,7 @@ public byte[] generateGasTestingCertificate(String certificateNo) {
                     .setBorder(null));
 
             document.add(table);
+
             document.close();
             return baos.toByteArray();
 
