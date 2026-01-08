@@ -57,6 +57,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // JWT stateless, so disable CSRF
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Allow login/register
+              //  .requestMatchers("/api/certificate/**").permitAll()  // Allow certificate generation
+                .requestMatchers("/api/certificate/**").hasRole("ADMIN")   // Only ADMIN can issue/revoke certificates
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated() // All other endpoints require auth
             )

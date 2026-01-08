@@ -80,7 +80,6 @@ private final TrainingProgramRepository trainingProgramRepository;
         } else {
             certificate.setStatus(CertificateStatus.VALID);
         }
-
         certificate=certificateRepository.save(certificate);
         return mapToResponse(certificate);
     }
