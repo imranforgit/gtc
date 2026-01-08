@@ -57,13 +57,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // JWT stateless, so disable CSRF
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Allow login/register
-              //  .requestMatchers("/api/certificate/**").permitAll()  // Allow certificate generation
+                .requestMatchers("/api/certificates/verify/**").permitAll()
                 .requestMatchers("/api/certificate/**").hasRole("ADMIN")   // Only ADMIN can issue/revoke certificates
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/api/certificates/**").hasRole("ADMIN")
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").hasRole("ADMIN")
                 .anyRequest().authenticated() // All other endpoints require auth
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) 
             .sessionManagement(session -> session
                 .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
             );

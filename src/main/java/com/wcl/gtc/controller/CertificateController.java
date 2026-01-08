@@ -1,8 +1,13 @@
 package com.wcl.gtc.controller;
 
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,4 +60,31 @@ public class CertificateController {
     public List<CertificateResponse > getAll() {
         return certificateService.getAllCertificates();
     }
+
+    @GetMapping("/verify/{certificateId}")
+    public ResponseEntity<?> verifyCertificate(@PathVariable String certificateId) {
+    try {
+        CertificateResponse cert = certificateService.getByCertificateId(certificateId);
+
+        // check expired
+        boolean expired = cert.getExpiryDate().isBefore(LocalDate.now());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", !expired);
+        result.put("certificateId", cert.getCertificateId());
+        result.put("user", cert.getUserName());
+        result.put("status", expired ? "Expired" : "Valid");
+        result.put("expiryDate", cert.getExpiryDate());
+
+        return ResponseEntity.ok(result);
+
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "valid", false,
+                        "message", "Certificate not found"
+                ));
+    }
+}
+
 }
